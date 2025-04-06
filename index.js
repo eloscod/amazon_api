@@ -2,39 +2,53 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
+// Load environment variables
 dotenv.config();
+
+// Stripe configuration
 const stripe = require("stripe")(process.env.VITE_STRIPE_KEY);
 
 const app = express();
 
+// Middleware
 app.use(cors({ origin: true }));
+app.use(express.json()); // Important for handling JSON bodies
 
+// Test route
 app.get("/", (req, res) => {
   res.status(200).json({
     Message: "success!",
   });
 });
 
+// Stripe payment intent route
 app.post("/payment/create", async (req, res) => {
   const total = parseInt(req.query.total);
 
   if (total > 0) {
-    const paymentIntents = await stripe.paymentIntents.create({
-      amount: total,
-      currency: "USD",
-    });
+    try {
+      const paymentIntents = await stripe.paymentIntents.create({
+        amount: total,
+        currency: "USD",
+      });
 
-    res.status(201).json({
-      clientSecret: paymentIntents.client_secret,
-    });
+      res.status(201).json({
+        clientSecret: paymentIntents.client_secret,
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   } else {
     res.status(403).json({
-      massege: "Total is less than 0",
+      message: "Total must be greater than 0",
     });
   }
 });
 
-app.listen(6000, (err) => {
+// Use the dynamic port assigned by cPanel or fallback to 6000
+const PORT = process.env.PORT;
+
+app.listen(PORT, (err) => {
   if (err) throw err;
-  console.log("Server Running on PORT: http://localhost:6000");
+  console.log(`Server running on http://localhost:${PORT}`);
 });
