@@ -11,7 +11,7 @@ const stripe = require("stripe")(process.env.VITE_STRIPE_KEY);
 const app = express();
 
 // Middleware
-app.use(cors({ origin: true }));
+app.use(cors({ origin: "https://shop.osam.dev", credentials: true }));
 app.use(express.json()); // Important for handling JSON bodies
 
 // Test route
